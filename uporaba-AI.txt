@@ -1,0 +1,105 @@
+napiši kodo za graf jupyternotebooku , ki bo prikazal heatmap torej tabelo pogostosti vsakega para, če imam že Counter, kjer vsaka številka prikazuje pogostost tega para
+
+Tukaj je koda, ki iz Counter parov naredi heatmap (matriko pogostosti):
+
+python
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Predpostavimo, da je `par_counter` Counter, kjer so ključi npr. (a, b)
+# par_counter = Counter({(1,2): 5, (2,3): 3, ...})
+
+# 1. Pridobi vse unikatne elemente, ki nastopajo v parih
+elementi = sorted(set([x for par in par_counter for x in par]))
+n = len(elementi)
+indeks = {el: i for i, el in enumerate(elementi)}
+
+# 2. Ustvari prazno matriko in jo napolni s frekvencami
+matrika = np.zeros((n, n))
+for (a, b), frekvenca in par_counter.items():
+    i, j = indeks[a], indeks[b]
+    matrika[i, j] = frekvenca
+    matrika[j, i] = frekvenca  # če je par neurejen (a,b) == (b,a)
+
+# 3. Nariši heatmap
+fig, ax = plt.subplots(figsize=(10, 8))
+im = ax.imshow(matrika, cmap="YlOrRd")
+
+ax.set_xticks(range(n))
+ax.set_yticks(range(n))
+ax.set_xticklabels(elementi, rotation=90)
+ax.set_yticklabels(elementi)
+
+# Dodaj vrednosti v celice
+for i in range(n):
+    for j in range(n):
+        if matrika[i, j] > 0:
+            ax.text(j, i, int(matrika[i, j]), ha="center", va="center",
+                     color="black", fontsize=7)
+
+ax.set_title("Pogostost parov")
+fig.colorbar(im, ax=ax, label="Frekvenca")
+plt.tight_layout()
+plt.show()
+
+Opombe:
+
+Če imaš zelo veliko unikatnih elementov (npr. >50), bo heatmap prenatrpan — v tem primeru izpusti besedilo v celicah (odstrani ax.text zanko) ali prikaži samo top N najpogostejših parov.
+Če imaš raje seaborn, je alternativa še enostavnejša:
+python
+import seaborn as sns
+import pandas as pd
+
+df = pd.DataFrame(matrika, index=elementi, columns=elementi)
+sns.heatmap(df, annot=True, fmt=".0f", cmap="YlOrRd")
+plt.title("Pogostost parov")
+plt.show()
+
+Če mi poveš, ali so tvoji pari urejeni (npr. (dan, mesec)) ali neurejeni (simetrični, npr. povezave med osebami), lahko kodo prilagodim.
+
+Če že imaš pripravljeno matriko matrika_parov (2D tabela s frekvencami), je koda za heatmap precej preprosta.
+
+
+
+
+
+
+
+
+Ali je lažje če ustvarim matriko, graf pa je cmap?
+
+Da, točno tako – to je najlažji in najbolj standarden pristop. Ideja je:
+
+Ustvariš matriko (2D tabela števil = frekvence parov)
+imshow() ali sns.heatmap() samo prebere to matriko in vsako številko obarva glede na cmap (barvno lestvico)
+
+To je bistveno lažje kot ročno risati pravokotnike ali celice – cmap naredi vso "vizualno" delo namesto tebe, ti samo poskrbiš, da so podatki v pravilni obliki (matrika).
+
+
+
+
+
+
+
+
+
+napiši kodo za graf jupyternotebooku , ki bo prikazal heatmap torej tabelo pogostosti vsakega para, če imam že tabelo matrika_parov, kjer vsaka številka prikazuje pogostost tega para
+
+python
+fig, ax = plt.subplots(figsize=(14, 12))
+im = ax.imshow(ana.matrika_parov, cmap="viridis")
+
+ax.set_xticks(range(0, 50, 2))
+ax.set_xticklabels(range(1, 51, 2), rotation=90)
+ax.set_yticks(range(0, 50, 2))
+ax.set_yticklabels(range(1, 51, 2))
+
+ax.set_xlabel("Številka")
+ax.set_ylabel("Številka")
+ax.set_title("Pogostost pojavljanja parov številk")
+
+cbar = plt.colorbar(im, ax=ax)
+cbar.set_label("Pogostost")
+
+plt.tight_layout()
+plt.show()
